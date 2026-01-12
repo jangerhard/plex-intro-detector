@@ -1,0 +1,18 @@
+services:
+  plex-intro-detector:
+    build: .
+    container_name: plex-intro-detector
+    network_mode: host
+    environment:
+      - PLEX_URL=${PLEX_URL}
+      - PLEX_TOKEN=${PLEX_TOKEN}
+      - TAUTULLI_URL=${TAUTULLI_URL}
+      - TAUTULLI_API_KEY=${TAUTULLI_API_KEY}
+      - TARGET_USERS=${TARGET_USERS}
+      - LOOKBACK_DAYS=${LOOKBACK_DAYS:-7}
+      - DRY_RUN=${DRY_RUN:-false}
+      - MAX_ANALYZE=${MAX_ANALYZE:-20}
+      - RUN_INTERVAL=${RUN_INTERVAL:-}
+      - SKIP_WATCHED=${SKIP_WATCHED:-true}
+    volumes:
+      - ./config:/config

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+config/
+*.egg-info/
+.venv/
+.claude/
+tasks.md
+PRD.md
