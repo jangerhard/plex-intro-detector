@@ -1,8 +1,8 @@
 services:
   plex-intro-detector:
-    build: .
+    image: jangerhard/plex-intro-detector:latest
     container_name: plex-intro-detector
-    network_mode: host
+    restart: unless-stopped
     environment:
       - PLEX_URL=${PLEX_URL}
       - PLEX_TOKEN=${PLEX_TOKEN}

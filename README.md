@@ -160,8 +160,8 @@ This tool will handle intro detection for shows your users actually watch.
 ## Troubleshooting
 
 - **"Show not found" warnings** - Show may have been removed from Plex
-- **Container can't reach Plex/Tautulli** - Use IP addresses, not `localhost`. On macOS, use `host.docker.internal`
-- **No episodes found** - Check `TARGET_USERS` matches Tautulli usernames exactly
+- **Container can't reach Plex/Tautulli** - If all services are in the same Docker Compose stack, use container names (e.g., `http://plex:32400`). Otherwise, use LAN IP addresses. On macOS Docker Desktop, use `host.docker.internal`
+- **No episodes found** - Check `TARGET_USERS` matches Tautulli usernames exactly (case-insensitive)
 - **All episodes skipped** - Normal if already processed. Delete `config/analyzed.json` to reprocess
 
 ## License
