@@ -12,6 +12,22 @@ env:
   GHCR_IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
+  update-dockerhub-readme:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: jangerhard/plex-intro-detector
+          readme-filepath: ./README.md
+          short-description: "Selective Plex intro detection based on user watch history"
+
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
