@@ -20,9 +20,11 @@ This tool solves that by only analyzing shows that specific users watch.
 
 ## Who Is This For
 
-- **Plex server admins** who want targeted intro detection
-- **Shared server owners** who want "Skip Intro" for specific users only
-- **Resource-conscious users** who don't want Plex scanning everything
+**Plex Pass holders who share their server with non-Plex Pass users.**
+
+Plex Pass is required to display "Skip Intro" and "Skip Credits" buttons. If you're the only Plex Pass holder on your server, why waste CPU cycles scanning shows that only your non-Plex Pass users watch? They can't use the feature anyway.
+
+This tool lets you selectively scan only the shows *you* watch, saving server resources while still getting "Skip Intro" where it matters.
 
 ## Prerequisites
 
@@ -96,9 +98,11 @@ Complete: 1 shows, 10 analyzed, 0 skipped...
 
 ## How It Works
 
-```
-Tautulli ──▶ plex-intro-detector ──▶ Plex
-(history)      (scheduler loop)      (analyze)
+```mermaid
+flowchart LR
+    T[Tautulli] -->|watch history| P[plex-intro-detector]
+    P -->|analyze episodes| X[Plex]
+    P -->|save state| S[(analyzed.json)]
 ```
 
 1. Queries Tautulli for shows watched by target users
