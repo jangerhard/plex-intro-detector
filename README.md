@@ -126,7 +126,7 @@ Complete: 1 shows, 10 analyzed, 0 skipped...
 |----------|---------|-------------|
 | `LOOKBACK_DAYS` | `7` | Days of watch history to check |
 | `DRY_RUN` | `false` | Log actions without executing |
-| `MAX_ANALYZE` | `20` | Max episodes to analyze per run |
+| `MAX_ANALYZE` | `100` | Max episodes to analyze per run |
 | `RUN_INTERVAL` | unset | Schedule interval (`6h`, `30m`, `1d`). If unset, runs once and exits |
 | `SKIP_WATCHED` | `true` | Skip episodes already watched by target users |
 | `STATE_FILE` | `/config/analyzed.json` | Path to state file |
@@ -136,7 +136,7 @@ Complete: 1 shows, 10 analyzed, 0 skipped...
 For a new setup with existing watch history:
 
 1. Set `LOOKBACK_DAYS=90` to catch all recently watched shows
-2. Set `MAX_ANALYZE=50` to process larger batches
+2. Set `MAX_ANALYZE=200` to process larger batches
 3. Run every 1-2 hours until caught up
 4. Then reduce to `LOOKBACK_DAYS=7` for ongoing use
 

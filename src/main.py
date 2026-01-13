@@ -45,7 +45,7 @@ def load_config() -> dict:
         "lookback_days": int(os.getenv("LOOKBACK_DAYS", "7")),
         "dry_run": os.getenv("DRY_RUN", "false").lower() == "true",
         "state_file": Path(os.getenv("STATE_FILE", "/config/analyzed.json")),
-        "max_analyze": int(os.getenv("MAX_ANALYZE", "20")),
+        "max_analyze": int(os.getenv("MAX_ANALYZE", "100")),
         "run_interval": parse_interval(os.getenv("RUN_INTERVAL", "")),
         "skip_watched": os.getenv("SKIP_WATCHED", "true").lower() == "true",
     }

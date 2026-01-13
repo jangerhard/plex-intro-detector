@@ -11,7 +11,7 @@ services:
       - TARGET_USERS=${TARGET_USERS}
       - LOOKBACK_DAYS=${LOOKBACK_DAYS:-7}
       - DRY_RUN=${DRY_RUN:-false}
-      - MAX_ANALYZE=${MAX_ANALYZE:-20}
+      - MAX_ANALYZE=${MAX_ANALYZE:-100}
       - RUN_INTERVAL=${RUN_INTERVAL:-}
       - SKIP_WATCHED=${SKIP_WATCHED:-true}
     volumes:
