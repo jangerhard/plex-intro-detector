@@ -6,35 +6,75 @@
 
 > **Disclaimer:** This project was generated with AI assistance (Claude). Review the code before deploying to your environment.
 
-Selectively trigger Plex intro detection based on what users actually watch, instead of scanning your entire library.
+**Proactively trigger Plex intro detection for shows you watch, so "Skip Intro" is ready before you need it.**
 
-## Why This Exists
+## Why?
 
-Plex's built-in intro detection is **CPU-intensive** and runs on all content. If you:
+Plex's built-in intro detection has two problems:
 
-- Share your server with users who don't care about "Skip Intro"
-- Have a large library but only watch a fraction of it
-- Want to save CPU cycles on your server
+1. **It runs on everything** - Your server spends hours analyzing shows nobody watches
+2. **It only runs during library scans** - New episodes often lack intro markers when you first watch them
 
-This tool solves that by only analyzing shows that specific users watch.
+This tool flips the approach: instead of scanning your entire library, it watches what *you* watch and proactively analyzes those shows.
 
-## Who Is This For
+### The Key Difference
 
-**Plex Pass holders who share their server with non-Plex Pass users.**
+**This tool analyzes ALL episodes of a show, not just the one you watched.**
 
-Plex Pass is required to display "Skip Intro" and "Skip Credits" buttons. If you're the only Plex Pass holder on your server, why waste CPU cycles scanning shows that only your non-Plex Pass users watch? They can't use the feature anyway.
+When you watch Episode 1 of a new series, plex-intro-detector triggers analysis on the entire show. By the time you get to Episode 2, "Skip Intro" is already waiting.
 
-This tool lets you selectively scan only the shows *you* watch, saving server resources while still getting "Skip Intro" where it matters.
+### Example Scenario
 
-## Prerequisites
+| Without this tool | With this tool |
+|-------------------|----------------|
+| Watch Episode 1 of new show | Watch Episode 1 of new show |
+| No "Skip Intro" (not scanned yet) | Tool detects you started a new show |
+| Manually trigger library scan... | Analyzes all 20 episodes in background |
+| Wait for scan to complete... | Episode 2 has "Skip Intro" ready |
+| Finally get "Skip Intro" | All future episodes ready to go |
 
-- **Plex Media Server** with a valid token
-- **Tautulli** monitoring your Plex server (for watch history)
-- **Docker** and Docker Compose
+## Requirements
 
-## Quick Start
+- **Plex Media Server** with Plex Pass
+- **[Tautulli](https://tautulli.com/)** for watch history tracking
+- **Docker**
 
-### Option A: Docker Hub (recommended)
+### Plex Pass Note
+
+"Skip Intro" requires Plex Pass for the viewing user:
+
+- **Managed Users (Plex Home)** - Inherit the server owner's Plex Pass ✓
+- **External users** - Need their own Plex Pass subscription
+
+Without Plex Pass, intro markers exist but the skip button won't appear. This tool is most useful for server owners who want "Skip Intro" for themselves without scanning content only their non-Plex Pass users watch.
+
+## How It Works
+
+```mermaid
+flowchart LR
+    T[Tautulli] -->|watch history| P[plex-intro-detector]
+    P -->|analyze ALL episodes| X[Plex]
+    P -->|save state| S[(analyzed.json)]
+```
+
+1. Queries Tautulli for shows watched by target users
+2. Gets **all episodes** from those shows (not just watched ones)
+3. Skips episodes that already have markers or were processed
+4. Triggers Plex's `analyze()` on remaining episodes
+5. Saves state to avoid re-processing
+
+### Smart Skip Logic
+
+Episodes are skipped when:
+
+- **Has intro marker** - Already has "Skip Intro"
+- **Has credits marker** - Already scanned, no intro found
+- **Already watched by target users** - No need for "Skip Intro" on seen content
+- **In state file** - Previously processed
+
+## Installation
+
+### Option A: Docker Run
 
 ```bash
 docker run -d \
@@ -50,8 +90,6 @@ docker run -d \
 ```
 
 ### Option B: Docker Compose
-
-1. Create a `docker-compose.yml`:
 
 ```yaml
 services:
@@ -70,25 +108,13 @@ services:
     restart: unless-stopped
 ```
 
-2. Run it:
-
 ```bash
 docker compose up -d
 ```
 
-### Option C: Build from source
+### Test with Dry Run
 
-```bash
-git clone https://github.com/jangerhard/plex-intro-detector.git
-cd plex-intro-detector
-cp .env.example .env
-# Edit .env with your credentials
-docker compose up --build -d
-```
-
-### Test with dry run first
-
-Add `-e DRY_RUN=true` to see what would be analyzed without actually triggering Plex:
+Add `-e DRY_RUN=true` to see what would be analyzed without triggering Plex:
 
 ```
 Found 5 shows watched by target users (42 episodes)
@@ -96,50 +122,30 @@ Found 5 shows watched by target users (42 episodes)
 Complete: 1 shows, 10 analyzed, 0 skipped...
 ```
 
-## How It Works
-
-```mermaid
-flowchart LR
-    T[Tautulli] -->|watch history| P[plex-intro-detector]
-    P -->|analyze episodes| X[Plex]
-    P -->|save state| S[(analyzed.json)]
-```
-
-1. Queries Tautulli for shows watched by target users
-2. Gets **all episodes** from those shows (not just watched ones)
-3. Skips episodes that already have markers or were processed
-4. Triggers Plex's `analyze()` on remaining episodes
-5. Saves state to avoid re-processing
-
-## Smart Skip Logic
-
-Episodes are skipped when:
-
-- **Has intro marker** - Already has "Skip Intro"
-- **Has credits marker** - Already scanned, no intro found
-- **Already watched by target users** - No need for "Skip Intro" on seen content
-- **In state file** - Previously processed
-
-## Configuration Reference
+## Configuration
 
 ### Required
 
-- **`PLEX_URL`** - Plex server URL (e.g., `http://plex:32400`)
-- **`PLEX_TOKEN`** - Your Plex X-Plex-Token ([how to find](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/))
-- **`TAUTULLI_URL`** - Tautulli URL (e.g., `http://tautulli:8181`)
-- **`TAUTULLI_API_KEY`** - Tautulli API key (Settings → Web Interface)
-- **`TARGET_USERS`** - Comma-separated Plex usernames
+| Variable | Description |
+|----------|-------------|
+| `PLEX_URL` | Plex server URL (e.g., `http://plex:32400`) |
+| `PLEX_TOKEN` | Your Plex X-Plex-Token ([how to find](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)) |
+| `TAUTULLI_URL` | Tautulli URL (e.g., `http://tautulli:8181`) |
+| `TAUTULLI_API_KEY` | Tautulli API key (Settings → Web Interface) |
+| `TARGET_USERS` | Comma-separated Plex usernames to monitor |
 
 ### Optional
 
-- **`LOOKBACK_DAYS`** (default: `7`) - Days of watch history to check
-- **`DRY_RUN`** (default: `false`) - Log actions without executing
-- **`MAX_ANALYZE`** (default: `20`) - Max episodes to analyze per run
-- **`RUN_INTERVAL`** (default: unset) - Schedule interval (`6h`, `30m`, `1d`). If unset, runs once and exits
-- **`SKIP_WATCHED`** (default: `true`) - Skip episodes already watched by target users
-- **`STATE_FILE`** (default: `/config/analyzed.json`) - Path to state file
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOOKBACK_DAYS` | `7` | Days of watch history to check |
+| `DRY_RUN` | `false` | Log actions without executing |
+| `MAX_ANALYZE` | `20` | Max episodes to analyze per run |
+| `RUN_INTERVAL` | unset | Schedule interval (`6h`, `30m`, `1d`). If unset, runs once and exits |
+| `SKIP_WATCHED` | `true` | Skip episodes already watched by target users |
+| `STATE_FILE` | `/config/analyzed.json` | Path to state file |
 
-## Initial Backlog Processing
+## Initial Setup
 
 For a new setup with existing watch history:
 
@@ -148,14 +154,14 @@ For a new setup with existing watch history:
 3. Run every 1-2 hours until caught up
 4. Then reduce to `LOOKBACK_DAYS=7` for ongoing use
 
-## Post-Deployment (Optional)
+## Disabling Plex's Global Detection (Optional)
 
-To save resources, disable Plex's global intro detection:
+Once running, you can disable Plex's resource-heavy global scanning:
 
 1. Plex → Settings → Library
 2. Disable "Detect intros and credits"
 
-This tool will handle intro detection for shows your users actually watch.
+This tool will handle intro detection for shows you actually watch.
 
 ## Troubleshooting
 
@@ -166,4 +172,4 @@ This tool will handle intro detection for shows your users actually watch.
 
 ## License
 
-MIT
+[MIT](LICENSE)
