@@ -6,32 +6,18 @@
 
 > **Disclaimer:** This project was generated with AI assistance (Claude). Review the code before deploying to your environment.
 
-**Proactively trigger Plex intro detection for shows you watch, so "Skip Intro" is ready before you need it.**
+**A selective alternative to Plex's global intro detection - only analyze shows that matter.**
 
 ## Why?
 
-Plex's built-in intro detection has two problems:
+Plex's built-in intro detection scans your **entire library**. For server owners, this means:
 
-1. **It runs on everything** - Your server spends hours analyzing shows nobody watches
-2. **It only runs during library scans** - New episodes often lack intro markers when you first watch them
+- Hours of CPU time spent analyzing shows only your friends watch
+- Wasted resources on content that won't benefit from "Skip Intro" (non-Plex Pass users can't see the button anyway)
 
-This tool flips the approach: instead of scanning your entire library, it watches what *you* watch and proactively analyzes those shows.
+This tool lets you disable Plex's global scanning and only analyze shows that matter. Set `TARGET_USERS` to yourself, or include friends who have their own Plex Pass - anyone who can actually benefit from "Skip Intro".
 
-### The Key Difference
-
-**This tool analyzes ALL episodes of a show, not just the one you watched.**
-
-When you watch Episode 1 of a new series, plex-intro-detector triggers analysis on the entire show. By the time you get to Episode 2, "Skip Intro" is already waiting.
-
-### Example Scenario
-
-| Without this tool | With this tool |
-|-------------------|----------------|
-| Watch Episode 1 of new show | Watch Episode 1 of new show |
-| No "Skip Intro" (not scanned yet) | Tool detects you started a new show |
-| Manually trigger library scan... | Analyzes all 20 episodes in background |
-| Wait for scan to complete... | Episode 2 has "Skip Intro" ready |
-| Finally get "Skip Intro" | All future episodes ready to go |
+**Bonus:** When you start a new show, this tool analyzes the entire series - so future episodes have "Skip Intro" ready before you get to them.
 
 ## Requirements
 
@@ -46,20 +32,20 @@ When you watch Episode 1 of a new series, plex-intro-detector triggers analysis 
 - **Managed Users (Plex Home)** - Inherit the server owner's Plex Pass ✓
 - **External users** - Need their own Plex Pass subscription
 
-Without Plex Pass, intro markers exist but the skip button won't appear. This tool is most useful for server owners who want "Skip Intro" for themselves without scanning content only their non-Plex Pass users watch.
+Without Plex Pass, intro markers exist but the skip button won't appear.
 
 ## How It Works
 
 ```mermaid
 flowchart LR
     T[Tautulli] -->|watch history| P[plex-intro-detector]
-    P -->|analyze ALL episodes| X[Plex]
+    P -->|analyze| X[Plex]
     P -->|save state| S[(analyzed.json)]
 ```
 
 1. Queries Tautulli for shows watched by target users
-2. Gets **all episodes** from those shows (not just watched ones)
-3. Skips episodes that already have markers or were processed
+2. Gets all episodes from those shows (so future episodes are ready)
+3. Skips episodes already processed or with existing markers
 4. Triggers Plex's `analyze()` on remaining episodes
 5. Saves state to avoid re-processing
 
